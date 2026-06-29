@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Tako Empréstimos - Solução Rápida</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Poppins', sans-serif;
+        }
+
+        /* LOADER FULLSCREEN */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #0b2b26 0%, #0a3b33 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .tako-loader {
+            text-align: center;
+            color: #f5b042;
+        }
+        .tako-loader h1 {
+            font-size: 3rem;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-shadow: 0 0 10px #ffb347;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 10px #ffb347, 0 0 20px rgba(245,176,66,0.3); }
+            50% { text-shadow: 0 0 20px #ffb347, 0 0 40px rgba(245,176,66,0.5); }
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255,180,71,0.2);
+            border-top: 6px solid #f5b042;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-text {
+            font-size: 1.2rem;
+            color: #fff3e0;
+            animation: fadeInOut 1.5s ease-in-out infinite;
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* MAIN APP */
+        #main-app {
+            display: none;
+            background: #fef9ef;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            animation: fadeInApp 0.8s ease;
+        }
+        @keyframes fadeInApp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARD & FORM GERAL */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 24px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #ffe1b3;
+            animation: cardSlideUp 0.6s ease both;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+        @keyframes cardSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+
+        .form-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+        label {
+            font-weight: 600;
+            color: #2d5a4c;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 28px;
+            border: 1.5px solid #e2dccd;
+            background: #fffcf5;
+            font-size: 1rem;
+            transition: 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #f5b042;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245,176,66,0.2);
+            transform: scale(1.01);
+        }
+        button {
+            background: #f5b042;
+            color: #2c3e2f;
+            border: none;
+            padding: 14px 18px;
+            font-weight: bold;
+            font-size: 1rem;
+            border-radius: 40px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: width 0.6s ease, height 0.6s ease, top 0.6s ease, left 0.6s ease;
+        }
+        button:active::after {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+        }
+        button:active { transform: scale(0.96); background: #e09d2c; }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #f5b042;
+            color: #f5b042;
+        }
+        .btn-outline:hover {
+            background: #f5b042;
+            color: #2c3e2f;
+        }
+        .loan-levels {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .level-btn {
+            background: #f8ede0;
+            border-radius: 28px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            color: #2d5a4c;
+            border: 1px solid #ffe0b5;
+            transition: 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .level-btn:not(.locked):hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(245,176,66,0.3);
+            border-color: #f5b042;
+        }
+        .level-btn:not(.locked):active { transform: scale(0.95); }
+        .level-btn.locked {
+            opacity: 0.5;
+            filter: grayscale(0.1);
+            background: #e2ddd2;
+            pointer-events: none;
+        }
+        .level-btn .lock-icon {
+            display: inline-block;
+            animation: lockShake 3s ease-in-out infinite;
+        }
+        @keyframes lockShake {
+            0%, 90%, 100% { transform: rotate(0); }
+            95% { transform: rotate(10deg); }
+        }
+        .badge {
+            background: #2d5a4c;
+            color: white;
+            border-radius: 60px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-top: 8px;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        hr {
+            margin: 16px 0;
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #ffe1b3, transparent);
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 28px;
+            text-align: center;
+            animation: successPop 0.5s ease;
+        }
+        @keyframes successPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden { display: none; }
+        .whatsapp-note {
+            background: #25d36610;
+            border-left: 4px solid #25D366;
+            padding: 10px;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            animation: slideInLeft 0.5s ease;
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+        .btn-whatsapp:hover {
+            background: #1da85c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37,211,102,0.3);
+        }
+        .btn-whatsapp:active { transform: scale(0.96); }
+
+        /* ===== CARTÃO VISA PREMIUM ===== */
+        .visa-card.premium {
+            background: linear-gradient(135deg, #0a1a1a 0%, #1a2d2d 30%, #0d1f1f 60%, #1a2a2a 100%);
+            border-radius: 28px;
+            padding: 28px 24px 24px;
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(245,176,66,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            border: none;
+            animation: cardFloat 4s ease-in-out infinite;
+        }
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .visa-card.premium:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 25px 70px rgba(0,0,0,0.6),
+                0 0 0 1px rgba(245,176,66,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        .card-glow {
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(245,176,66,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: glowMove 6s ease-in-out infinite;
+        }
+        @keyframes glowMove {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-10px, 10px); }
+            75% { transform: translate(10px, -10px); }
+        }
+
+        .card-shine {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+            animation: shineMove 8s ease-in-out infinite;
+        }
+        @keyframes shineMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20%, 10%); }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-chip {
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            animation: chipPulse 3s ease-in-out infinite;
+        }
+        @keyframes chipPulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        .card-brand-logo {
+            text-align: center;
+            margin-left: 10px;
+        }
+
+        .brand-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #f5b042;
+            letter-spacing: 4px;
+            display: block;
+            text-shadow: 0 2px 10px rgba(245,176,66,0.3);
+            animation: textGlow 3s ease-in-out infinite;
+        }
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 2px 10px rgba(245,176,66,0.3); }
+            50% { text-shadow: 0 2px 20px rgba(245,176,66,0.6); }
+        }
+
+        .brand-sub {
+            font-size: 0.55rem;
+            color: rgba(255,215,0,0.4);
+            letter-spacing: 3px;
+            font-weight: 300;
+        }
+
+        .card-type {
+            text-align: right;
+        }
+
+        .card-type .visa-text {
+            display: block;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+
+        .card-number-section {
+            margin: 20px 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-number-label {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            font-weight: 300;
+            margin-bottom: 4px;
+        }
+
+        .card-number-display {
+            display: flex;
+            gap: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .card-number-display span {
+            background: rgba(255,255,255,0.03);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: 0.3s ease;
+        }
+        .card-number-display span:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .card-number-display #cardLastDigits {
+            color: #f5b042;
+            border-color: rgba(245,176,66,0.15);
+            animation: digitGlow 2s ease-in-out infinite;
+        }
+        @keyframes digitGlow {
+            0%, 100% { color: #f5b042; }
+            50% { color: #ffd700; }
+        }
+
+        .card-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.2fr;
+            gap: 12px;
+            margin: 16px 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-detail-item .detail-label {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 300;
+            margin-bottom: 2px;
+        }
+
+        .card-detail-item .detail-value {
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: 0.3s ease;
+        }
+        .card-detail-item .detail-value:hover {
+            color: #f5b042;
+        }
+
+        .card-detail-item.highlight .detail-value {
+            color: #f5b042;
+            font-size: 1.1rem;
+            font-weight: 700;
+            animation: valuePulse 2s ease-in-out infinite;
+        }
+        @keyframes valuePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .card-detail-item.highlight .detail-label {
+            color: rgba(245,176,66,0.5);
+        }
+
+        .card-detail-item .detail-value.overdue {
+            color: #dc3545 !important;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card-footer-premium {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 1;
+            margin-top: 8px;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .days-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+        }
+
+        .days-text strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .days-text.overdue strong {
+            color: #dc3545;
+        }
+
+        .late-fee {
+            color: #dc3545;
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: rgba(220, 53, 69, 0.15);
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            animation: latePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes latePulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .loan-progress {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f5b042, #ffd700);
+            border-radius: 4px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-bar-fill.overdue {
+            background: linear-gradient(90deg, #dc3545, #ff6b6b);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+        }
+
+        .progress-info span:last-child {
+            color: rgba(245,176,66,0.6);
+            transition: 0.3s ease;
+        }
+        .progress-info span:last-child:hover {
+            color: #f5b042;
+        }
+
+        .progress-info span:last-child.overdue {
+            color: #dc3545;
+        }
+
+        .btn-pagar.premium-btn {
+            background: linear-gradient(135deg, #f5b042, #e09d2c);
+            color: #1a2d2d;
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(245,176,66,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: btnPulse 2s ease-in-out infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(245,176,66,0.25); }
+            50% { box-shadow: 0 4px 30px rgba(245,176,66,0.4); }
+        }
+
+        .btn-pagar.premium-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(245,176,66,0.35);
+        }
+
+        .btn-pagar.premium-btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-pagar.premium-btn.overdue-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+            animation: pulse-btn 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-btn {
+            0%, 100% { box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3); }
+            50% { box-shadow: 0 4px 30px rgba(220, 53, 69, 0.6); }
+        }
+
+        .btn-icon {
+            font-size: 1.2rem;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .status-container .status-indicator.active {
+            background: #28a745;
+        }
+
+        .status-container .status-indicator.warning {
+            background: #ffc107;
+        }
+
+        .status-container .status-indicator.danger {
+            background: #dc3545;
+        }
+
+        /* MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO */
+        #loanModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            overflow-y: auto;
+            animation: modalFade 0.3s ease;
+        }
+        @keyframes modalFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #loanModal .modal-content {
+            background: white;
+            max-width: 450px;
+            width: 100%;
+            border-radius: 40px;
+            padding: 28px 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideUp 0.4s ease;
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        #loanModal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f5b042;
+            padding-bottom: 15px;
+        }
+        #loanModal .modal-header h2 {
+            color: #2d5a4c;
+            font-size: 1.3rem;
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+        @keyframes titleGlow {
+            0%, 100% { color: #2d5a4c; }
+            50% { color: #f5b042; }
+        }
+        #loanModal .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #666;
+            width: auto;
+            padding: 0 10px;
+            transition: 0.3s ease;
+        }
+        #loanModal .close-modal:hover { 
+            color: #dc3545;
+            transform: rotate(90deg);
+        }
+        #loanModal .info-detail {
+            background: #f8f4ec;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            transition: 0.3s ease;
+        }
+        #loanModal .info-detail:hover {
+            background: #f0ebe0;
+            transform: translateX(5px);
+        }
+        #loanModal .info-detail .label {
+            color: #666;
+            font-weight: 500;
+        }
+        #loanModal .info-detail .value {
+            color: #2d5a4c;
+            font-weight: 700;
+        }
+        #loanModal .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #loanModal .btn-group button {
+            flex: 1;
+            transition: 0.3s ease;
+        }
+        #loanModal .btn-group button:hover {
+            transform: translateY(-2px);
+        }
+        .loan-summary {
+            background: #fff8ee;
+            border-radius: 20px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #f5b042;
+            animation: summaryGlow 3s ease-in-out infinite;
+        }
+        @keyframes summaryGlow {
+            0%, 100% { border-color: #f5b042; }
+            50% { border-color: #ffd700; }
+        }
+        .loan-summary h4 {
+            color: #2d5a4c;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* MODAL DE PAGAMENTO */
+        #paymentModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        #paymentModal .modal-content {
+            background: white;
+            max-width: 400px;
+            width: 100%;
+            border-radius: 40px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.4s ease;
+        }
+        #paymentModal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f5b042;
+            padding-bottom: 15px;
+        }
+        #paymentModal .modal-header h3 {
+            color: #2d5a4c;
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+        #paymentModal .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #666;
+            width: auto;
+            padding: 0 10px;
+            transition: 0.3s ease;
+        }
+        #paymentModal .close-modal:hover {
+            color: #dc3545;
+            transform: rotate(90deg);
+        }
+
+        /* ===== CHATBOT FLUTUANTE ===== */
+        .chatbot-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9998;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5b042, #e09d2c);
+            color: #1a2d2d;
+            border: none;
+            box-shadow: 0 4px 20px rgba(245,176,66,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            animation: fabFloat 3s ease-in-out infinite;
+        }
+        @keyframes fabFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .chatbot-fab:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(245,176,66,0.5);
+        }
+        .chatbot-fab:active {
+            transform: scale(0.95);
+        }
+        .chatbot-fab .notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 14px;
+            height: 14px;
+            background: #dc3545;
+            border-radius: 50%;
+            border: 2px solid #fef9ef;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        .chatbot-fab .bot-icon {
+            font-size: 2rem;
+            animation: botWave 3s ease-in-out infinite;
+        }
+        @keyframes botWave {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        /* CHATBOT WIDGET */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 100px;
+            right: 25px;
+            z-index: 9997;
+            width: 380px;
+            max-width: calc(100vw - 40px);
+            max-height: 600px;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #ffe1b3;
+            animation: slideUp 0.3s ease;
+        }
+        .chatbot-widget.open {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #0b2b26, #0a3b33);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chatbot-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chatbot-header h4 span {
+            font-size: 1.3rem;
+            animation: botWave 3s ease-in-out infinite;
+        }
+        .chatbot-header .close-chat {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: auto;
+            padding: 0 5px;
+            box-shadow: none;
+            transition: 0.3s ease;
+        }
+        .chatbot-header .close-chat:hover {
+            color: #dc3545;
+            transform: rotate(90deg);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 16px 20px;
+            overflow-y: auto;
+            max-height: 400px;
+            background: #fef9ef;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chatbot-messages .message {
+            padding: 10px 14px;
+            border-radius: 18px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            animation: messageIn 0.4s ease;
+        }
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chatbot-messages .message.bot {
+            background: white;
+            color: #2d5a4c;
+            border: 1px solid #ffe1b3;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chatbot-messages .message.user {
+            background: #f5b042;
+            color: #1a2d2d;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            animation: userMsgIn 0.3s ease;
+        }
+        @keyframes userMsgIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .chatbot-messages .message .msg-time {
+            font-size: 0.6rem;
+            opacity: 0.6;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .chatbot-messages .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #ffe1b3;
+        }
+        .chatbot-messages .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            margin: 0 2px;
+            animation: typing 1.4s infinite both;
+        }
+        .chatbot-messages .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .chatbot-messages .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); background: #ccc; }
+            30% { transform: translateY(-6px); background: #f5b042; }
+        }
+
+        .chatbot-input {
+            display: flex;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #ffe1b3;
+            gap: 8px;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 28px;
+            border: 1.5px solid #e2dccd;
+            background: #fffcf5;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.3s ease;
+        }
+        .chatbot-input input:focus {
+            border-color: #f5b042;
+            box-shadow: 0 0 0 3px rgba(245,176,66,0.2);
+            transform: scale(1.02);
+        }
+        .chatbot-input button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: #f5b042;
+            color: #1a2d2d;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s ease;
+            flex-shrink: 0;
+        }
+        .chatbot-input button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(245,176,66,0.3);
+        }
+        .chatbot-input button:active {
+            transform: scale(0.95);
+        }
+
+        .chatbot-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 16px 12px;
+            background: #fef9ef;
+            border-top: 1px solid #ffe1b3;
+        }
+        .chatbot-quick-actions button {
+            background: white;
+            border: 1px solid #ffe1b3;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            color: #2d5a4c;
+            cursor: pointer;
+            transition: 0.3s ease;
+            width: auto;
+            box-shadow: none;
+        }
+        .chatbot-quick-actions button:hover {
+            background: #f5b042;
+            color: #1a2d2d;
+            border-color: #f5b042;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245,176,66,0.2);
+        }
+        .chatbot-quick-actions button:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== ELEMENTOS VERMELHOS ===== */
+        .text-danger { color: #dc3545; }
+        .bg-danger { background: #dc3545; }
+        .border-danger { border-color: #dc3545; }
+
+        .red-accent {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .red-pulse {
+            animation: redPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes redPulse {
+            0%, 100% { color: #dc3545; }
+            50% { color: #ff6b6b; }
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220,53,69,0.3);
+        }
+
+        .status-badge-danger {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            animation: badgeDangerPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes badgeDangerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); background: #ff4444; }
+        }
+
+        .red-border-glow {
+            border: 2px solid #dc3545;
+            box-shadow: 0 0 20px rgba(220,53,69,0.2);
+            animation: redGlow 2s ease-in-out infinite;
+        }
+        @keyframes redGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(220,53,69,0.2); }
+            50% { box-shadow: 0 0 40px rgba(220,53,69,0.4); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card-number-display {
+                font-size: 1rem;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .card-details-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .card-detail-item.highlight {
+                grid-column: span 2;
+            }
+            .card-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .brand-text {
+                font-size: 1.2rem;
+            }
+            .loan-levels {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .level-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            .chatbot-widget {
+                bottom: 85px;
+                right: 10px;
+                max-width: calc(100vw - 20px);
+                max-height: 500px;
+            }
+            .chatbot-fab {
+                width: 55px;
+                height: 55px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 1.5rem;
+            }
+        }
+        @media (max-width: 380px) {
+            .chatbot-quick-actions button {
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            .chatbot-messages .message {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader-wrapper">
+    <div class="tako-loader">
+        <div class="spinner"></div>
+        <h1>TAKO NA HORA</h1>
+        <div class="loader-text">Carregando ambiente seguro...</div>
+    </div>
+</div>
+
+<div id="main-app">
+    <div class="container">
+        <!-- ÁREA DE CADASTRO -->
+        <div id="cadastroSection">
+            <div class="card">
+                <h2 style="color:#2d5a4c; margin-bottom: 8px;">📝 Cadastro Obrigatório</h2>
+                <p style="margin-bottom: 20px; font-size: 0.9rem;">Preencha com os seus dados oficiais</p>
+                <div class="whatsapp-note">
+                    📱 Todas as solicitações serão enviadas para o WhatsApp <strong>86 704 7493</strong>
+                </div>
+                <form id="cadastroForm">
+                    <div class="form-group"><label>Nome completo (como no Bilhete)</label><input type="text" id="nomeCompleto" required placeholder="Insira nome"></div>
+                    <div class="form-group"><label>Número do Bilhete</label><input type="text" id="numBilhete" required placeholder="Insira o número"></div>
+                    <div class="form-group"><label>Data de Nascimento</label><input type="date" id="dataNasc" required></div>
+                    <div class="form-group"><label>Província</label><select id="provincia" required></select></div>
+                    <div class="form-group"><label>Distrito</label><select id="distrito" required><option value="">Selecione primeiro a província</option></select></div>
+                    <div class="form-group"><label>Bairro</label><input type="text" id="bairro" placeholder="Digite o nome do seu bairro" required></div>
+                    <div class="form-group"><label>Número do cliente (receber dinheiro)</label><input type="tel" id="numeroCliente" required placeholder="84 ou 85XXXXXX"></div>
+                    <div class="form-group"><label>Email do cliente</label><input type="email" id="emailCliente" required placeholder="g@mail.com"></div>
+                    <button type="submit">✅ Finalizar Cadastro</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ÁREA PRINCIPAL APÓS CADASTRO -->
+        <div id="dashboardSection" style="display:none;">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="animation: titleGlow 2s ease-in-out infinite;">💰 Olá, <span id="userNameDisplay"></span></h2>
+                    <span class="badge">Nível <span id="nivelAtualSpan">1</span></span>
+                </div>
+                <hr>
+                <p><strong>Progresso para próximo nível:</strong> <span id="progressoTexto"></span></p>
+                <div style="background:#eee; border-radius: 30px; overflow:hidden; margin: 12px 0;">
+                    <div id="progressBarFill" style="height:10px; background:linear-gradient(90deg, #f5b042, #ffd700); width:0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                </div>
+            </div>
+
+            <!-- Painel de níveis / empréstimo -->
+            <div class="card">
+                <h3>📌 Escolha o Nível de Empréstimo</h3>
+                <div id="levelsContainer" class="loan-levels"></div>
+                <div id="infoNivelMsg" class="status-success" style="margin-top: 10px;"></div>
+            </div>
+
+            <!-- Mensagem de sucesso após solicitação -->
+            <div id="successMsg" class="success-msg">
+                ✅ Solicitação enviada com sucesso! Aguarde confirmação no WhatsApp.
+            </div>
+
+            <!-- CARTÃO DA DÍVIDA ATIVA - VISA PREMIUM -->
+            <div id="debtCardPanel" style="display:none;">
+                <div class="visa-card premium">
+                    <div class="card-glow"></div>
+                    <div class="card-shine"></div>
+                    
+                    <div class="card-header">
+                        <div class="card-chip">
+                            <svg width="45" height="35" viewBox="0 0 45 35">
+                                <rect x="2" y="2" width="41" height="31" rx="4" fill="none" stroke="#d4a843" stroke-width="1.5"/>
+                                <ellipse cx="14" cy="17" rx="7" ry="5" fill="none" stroke="#d4a843" stroke-width="1.2"/>
+                                <ellipse cx="14" cy="17" rx="4" ry="3" fill="none" stroke="#d4a843" stroke-width="1"/>
+                                <line x1="5" y1="10" x2="5" y2="24" stroke="#d4a843" stroke-width="0.8"/>
+                                <line x1="23" y1="10" x2="23" y2="24" stroke="#d4a843" stroke-width="0.8"/>
+                            </svg>
+                        </div>
+                        <div class="card-brand-logo">
+                            <span class="brand-text">TAKO NA HORA</span>
+                            <span class="brand-sub">EMPRÉSTIMO</span>
+                        </div>
+                        <div class="card-type">
+                            <span>💳</span>
+                            <span class="visa-text">CARTÃO VIRTUAL</span>
+                        </div>
+                    </div>
+
+                    <div class="card-number-section">
+                        <div class="card-number-label">Número do Cartão</div>
+                        <div class="card-number-display" id="debtCardNumber">
+                            <span>****</span>
+                            <span>****</span>
+                            <span>****</span>
+                            <span id="cardLastDigits">2026</span>
+                        </div>
+                    </div>
+
+                    <div class="card-details-grid">
+                        <div class="card-detail-item">
+                            <div class="detail-label">TITULAR</div>
+                            <div class="detail-value" id="debtCardHolder">---</div>
+                        </div>
+                        <div class="card-detail-item">
+                            <div class="detail-label">VALIDADE</div>
+                            <div class="detail-value" id="debtCardDue">---</div>
+                        </div>
+                        <div class="card-detail-item highlight">
+                            <div class="detail-label">VALOR</div>
+                            <div class="detail-value amount" id="debtCardValue">0 MT</div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-premium">
+                        <div class="status-container">
+                            <span class="status-indicator active" id="debtCardStatus"></span>
+                            <span class="status-text" id="debtCardStatusText">ATIVO</span>
+                        </div>
+                        <div class="days-container" id="debtDaysContainer">
+                            <span class="days-icon">⏳</span>
+                            <span class="days-text" id="debtCardDays"><strong>0</strong> dias restantes</span>
+                        </div>
+                    </div>
+
+                    <!-- Taxa de atraso - visível apenas em atraso -->
+                    <div id="lateFeeContainer" style="display:none; margin-top: 12px; padding: 8px 12px; background: rgba(220, 53, 69, 0.1); border-radius: 12px; border: 1px solid rgba(220, 53, 69, 0.2); position: relative; z-index: 1; animation: latePulse 1.5s ease-in-out infinite;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #dc3545; font-size: 0.7rem; font-weight: 600;">⚠️ TAXA DE ATRASO</span>
+                            <span style="color: #dc3545; font-size: 0.8rem; font-weight: 700; animation: redPulse 1.5s ease-in-out infinite;" id="lateFeeAmount">+0 MT</span>
+                        </div>
+                        <div style="font-size: 0.6rem; color: rgba(220, 53, 69, 0.7); margin-top: 4px;">
+                            2 MT por dia de atraso · <span id="lateFeeDays">0</span> dias em atraso
+                        </div>
+                    </div>
+
+                    <div class="loan-progress">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="debtProgressBar" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-info">
+                            <span>Progresso do empréstimo</span>
+                            <span id="debtProgressPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="pagarDebtBtn" class="btn-pagar premium-btn">
+                    <span class="btn-icon">💸</span>
+                    Fazer Pagamento via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO -->
+<div id="loanModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 Confirmar Empréstimo</h2>
+            <button class="close-modal" id="closeLoanModal">&times;</button>
+        </div>
+        
+        <div class="whatsapp-note">
+            📱 Ao confirmar, será aberto o WhatsApp para enviar a solicitação para <strong>86 704 7493</strong>
+        </div>
+
+        <div class="loan-summary">
+            <h4>📌 Resumo do Empréstimo</h4>
+            <div id="loanSummaryDetails"></div>
+        </div>
+
+        <div style="margin: 15px 0;">
+            <p style="font-weight: 600; color: #2d5a4c; margin-bottom: 10px;">👤 Dados do Cliente</p>
+            <div class="info-detail"><span class="label">Nome:</span><span class="value" id="modalNome"></span></div>
+            <div class="info-detail"><span class="label">Bilhete:</span><span class="value" id="modalBilhete"></span></div>
+            <div class="info-detail"><span class="label">Nº Cliente:</span><span class="value" id="modalNumero"></span></div>
+            <div class="info-detail"><span class="label">Email:</span><span class="value" id="modalEmail"></span></div>
+            <div class="info-detail"><span class="label">Localização:</span><span class="value" id="modalLocalizacao"></span></div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-cancel" id="cancelLoanBtn">Cancelar</button>
+            <button class="btn-whatsapp" id="confirmLoanBtn">📲 Enviar para WhatsApp</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE PAGAMENTO -->
+<div id="paymentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📤 Pagar Empréstimo</h3>
+            <button class="close-modal" id="closePaymentModal">&times;</button>
+        </div>
+        <div class="whatsapp-note">
+            📱 Enviar comprovativo para <strong>86 704 7493</strong>
+        </div>
+        <form id="pagamentoFormulario">
+            <div class="form-group"><label>Mensagem de pagamento (comprovativo)</label>
+                <textarea id="msgPagamento" rows="3" placeholder="Insira mensagem do pagamento" style="border-radius:20px;"></textarea>
+            </div>
+            <div class="form-group"><label>Nome do Cliente</label><input id="pagNome" readonly></div>
+            <div class="form-group"><label>Data/Hora</label><input id="pagHora" readonly></div>
+            <div class="form-group"><label>Número do cliente</label><input id="pagNumero" readonly></div>
+            <div class="form-group"><label style="color: #dc3545;">Valor a pagar (com taxas)</label><input id="pagValor" readonly style="border-color: #dc3545; color: #dc3545; font-weight: bold;"></div>
+            <button type="button" id="sendPaymentWhatsBtn" class="btn-whatsapp">📲 Enviar Pagamento via WhatsApp</button>
+            <button type="button" id="closeModalBtn" style="background:#ccc; margin-top:10px;">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== CHATBOT FLUTUANTE ===== -->
+<button class="chatbot-fab" id="chatFab" aria-label="Assistente Virtual">
+    <span class="bot-icon">🤖</span>
+    <span class="notification-dot"></span>
+</button>
+
+<div class="chatbot-widget" id="chatWidget">
+    <div class="chatbot-header">
+        <h4><span>🤖</span> Assistente Tako</h4>
+        <button class="close-chat" id="closeChat">&times;</button>
+    </div>
+    <div class="chatbot-messages" id="chatMessages">
+        <div class="message bot">
+            Olá! 👋 Sou o assistente virtual da Tako Empréstimos.<br>
+            Posso ajudar com:
+            <br>• Informações sobre níveis
+            <br>• Como solicitar um empréstimo
+            <br>• Pagamentos e taxas
+            <br>• Dúvidas gerais
+            <br><br>Como posso ajudá-lo hoje?
+            <span class="msg-time">Agora</span>
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+    <div class="chatbot-quick-actions">
+        <button data-msg="Quais são os níveis disponíveis?">📊 Níveis</button>
+        <button data-msg="Como solicitar um empréstimo?">💰 Solicitar</button>
+        <button data-msg="Quais são as taxas de juro?">📈 Juros</button>
+        <button data-msg="Como pagar minha dívida?">💸 Pagar</button>
+        <button data-msg="O que é a taxa de atraso?">⚠️ Atraso</button>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Digite sua pergunta..." maxlength="200">
+        <button id="sendChatBtn">➤</button>
+    </div>
+</div>
+
+<script>
+    // NÚMERO DO SUPORTE WHATSAPP FIXO
+    const WHATSAPP_NUMBER = "867047493";
+
+    // ---------- DADOS DOS NÍVEIS ----------
+    const niveis = [
+        { id:1, valor:20, pagamento:30, juro:10, duracao:7, qtdParaLiberar:10, nome:"Nível 1" },
+        { id:2, valor:50, pagamento:70, juro:20, duracao:7, qtdParaLiberar:15, nome:"Nível 2" },
+        { id:3, valor:150, pagamento:210, juro:60, duracao:7, qtdParaLiberar:15, nome:"Nível 3" },
+        { id:4, valor:550, pagamento:670, juro:120, duracao:26, qtdParaLiberar:10, nome:"Nível 4" },
+        { id:5, valor:2500, pagamento:2850, juro:350, duracao:31, qtdParaLiberar:8, nome:"Nível 5" },
+        { id:6, valor:7500, pagamento:9000, juro:1500, duracao:37, qtdParaLiberar:8, nome:"Nível 6" },
+        { id:7, valor:15000, pagamento:18000, juro:3000, duracao:40, qtdParaLiberar:9, nome:"Nível 7" },
+        { id:8, valor:35000, pagamento:41000, juro:6000, duracao:50, qtdParaLiberar:10, nome:"Nível 8" },
+        { id:9, valor:60000, pagamento:70000, juro:10000, duracao:60, qtdParaLiberar:11, nome:"Nível 9" },
+        { id:10, valor:100000, pagamento:150000, juro:50000, duracao:70, qtdParaLiberar:12, nome:"Nível 10" }
+    ];
+
+    // Variáveis de estado do usuário (persiste no localStorage)
+    let usuario = null;
+    let nivelSelecionado = null;
+
+    // Taxa de atraso por dia (fixa para todos os níveis)
+    const TAXA_ATRASO_DIA = 2;
+
+    // Respostas do chatbot
+    const CHAT_RESPONSES = {
+        'níveis': `📊 *Níveis disponíveis:*\n\n${niveis.map(n => `${n.nome}: ${n.valor} MT (paga ${n.pagamento} MT, juro ${n.juro} MT, ${n.duracao} dias)`).join('\n')}\n\nPara liberar o próximo nível, complete ${niveis[0]?.qtdParaLiberar || 10} empréstimos.`,
+        'solicitar': `💰 *Como solicitar um empréstimo:*\n\n1. Certifique-se que não tem dívidas ativas\n2. Escolha um nível disponível (verifique o progresso)\n3. Clique no nível desejado\n4. Confirme os dados no modal\n5. Envie para o WhatsApp\n\n⚠️ Lembre-se: o pagamento deve ser feito dentro do prazo para evitar taxas de atraso.`,
+        'juros': `📈 *Taxas de juro:*\n\nCada nível tem um juro fixo incluído no valor a pagar.\nExemplos:\n• Nível 1: ${niveis[0].juro} MT de juro\n• Nível 5: ${niveis[4].juro} MT de juro\n• Nível 10: ${niveis[9].juro} MT de juro\n\nO juro é calculado no momento da solicitação e incluído no total a pagar.`,
+        'pagar': `💸 *Como pagar sua dívida:*\n\n1. Acesse o cartão da dívida ativa\n2. Clique em "Fazer Pagamento via WhatsApp"\n3. Preencha os dados do comprovativo\n4. Envie para o WhatsApp\n\n⏳ O pagamento será processado após confirmação.\n\n⚠️ Taxa de atraso: ${TAXA_ATRASO_DIA} MT por dia após o vencimento.`,
+        'atraso': `⚠️ *Taxa de atraso:*\n\n• Valor: ${TAXA_ATRASO_DIA} MT por dia de atraso\n• Contagem: a partir do dia seguinte ao vencimento\n• Acumulativa: soma-se ao valor original\n• Exemplo: 5 dias de atraso = ${TAXA_ATRASO_DIA * 5} MT adicionais\n\n📌 Pague antes do vencimento para evitar multas!`,
+        'padrao': `🤖 Desculpe, não entendi sua pergunta.\n\nTente perguntar sobre:\n• Níveis disponíveis\n• Como solicitar empréstimo\n• Taxas de juro\n• Como pagar a dívida\n• Taxa de atraso\n\nOu use os botões rápidos abaixo.`,
+        'taxa atraso': `⚠️ *Taxa de atraso:*\n\n• Valor: ${TAXA_ATRASO_DIA} MT por dia de atraso\n• Contagem: a partir do dia seguinte ao vencimento\n• Acumulativa: soma-se ao valor original\n\n📌 Pague antes do vencimento para evitar multas!`,
+        'nivel': `📊 *Níveis disponíveis:*\n\n${niveis.map(n => `${n.nome}: ${n.valor} MT (paga ${n.pagamento} MT, juro ${n.juro} MT, ${n.duracao} dias)`).join('\n')}\n\nPara liberar o próximo nível, complete ${niveis[0]?.qtdParaLiberar || 10} empréstimos.`,
+        'emprestimo': `💰 *Como solicitar um empréstimo:*\n\n1. Certifique-se que não tem dívidas ativas\n2. Escolha um nível disponível (verifique o progresso)\n3. Clique no nível desejado\n4. Confirme os dados no modal\n5. Envie para o WhatsApp\n\n⚠️ Lembre-se: o pagamento deve ser feito dentro do prazo para evitar taxas de atraso.`,
+        'juro': `📈 *Taxas de juro:*\n\nCada nível tem um juro fixo incluído no valor a pagar.\nExemplos:\n• Nível 1: ${niveis[0].juro} MT de juro\n• Nível 5: ${niveis[4].juro} MT de juro\n• Nível 10: ${niveis[9].juro} MT de juro\n\nO juro é calculado no momento da solicitação e incluído no total a pagar.`,
+        'divida': `💸 *Como pagar sua dívida:*\n\n1. Acesse o cartão da dívida ativa\n2. Clique em "Fazer Pagamento via WhatsApp"\n3. Preencha os dados do comprovativo\n4. Envie para o WhatsApp\n\n⏳ O pagamento será processado após confirmação.\n\n⚠️ Taxa de atraso: ${TAXA_ATRASO_DIA} MT por dia após o vencimento.`,
+    };
+
+    function saveUserToStorage() { 
+        if(usuario) {
+            usuario._lastLogin = new Date().toISOString();
+            localStorage.setItem('takoUser', JSON.stringify(usuario)); 
+        }
+    }
+    function loadUserFromStorage() { 
+        const data = localStorage.getItem('takoUser'); 
+        if(data) { 
+            usuario = JSON.parse(data); 
+            return true; 
+        } 
+        return false; 
+    }
+
+    // Províncias e distritos
+    const provinciasMocambique = ["Maputo Cidade","Maputo Província","Gaza","Inhambane","Manica","Sofala","Tete","Zambézia","Nampula","Cabo Delgado","Niassa"];
+    const distritosPorProvincia = {
+        "Maputo Cidade":["KaMpfumo","Nlhamankulu","KaMaxakeni","KaMavota","KaMubukwana","Katembe"],
+        "Maputo Província":["Matola","Boane","Magude","Manhiça","Marracuene","Moamba","Namaacha"],
+        "Gaza":["Xai-Xai","Chibuto","Chicualacuala","Bilene","Chókwè","Guijá","Mabalane","Manjacaze","Massangena","Massingir"],
+        "Inhambane":["Inhambane","Maxixe","Funhalouro","Govuro","Homoine","Jangamo","Mabote","Massinga","Morrumbene","Panda","Vilanculos","Zavala"],
+        "Manica":["Chimoio","Bárue","Gondola","Guro","Macate","Machaze","Macossa","Manica","Mossurize","Sussundenga","Tambara"],
+        "Sofala":["Beira","Nhamatanda","Buzi","Caia","Chemba","Cheringoma","Chibabava","Dondo","Gorongosa","Marromeu","Muanza"],
+        "Tete":["Tete","Angónia","Cahora-Bassa","Changara","Chifunde","Chiuta","Macanga","Magoé","Marara","Moatize","Mutarara","Tsangano","Zumbo"],
+        "Zambézia":["Quelimane","Alto Molócuè","Chinde","Gile","Gurúè","Ile","Inhassunge","Lugela","Maganja da Costa","Milange","Mocuba","Mocubela","Molumbo","Mopeia","Morrumbala","Namacurra","Namarroi","Nicoadala","Pebane"],
+        "Nampula":["Nampula","Angoche","Eráti","Ilha de Moçambique","Lalaua","Malema","Meconta","Mecubúri","Memba","Mogincual","Mogovolas","Moma","Monapo","Mossuril","Muecate","Murrupula","Nacala-a-Velha","Nacala Porto","Rapale","Ribaué"],
+        "Cabo Delgado":["Pemba","Ancuabe","Balama","Chiúre","Ibo","Macomia","Mecúfi","Meluco","Mocímboa da Praia","Montepuez","Mueda","Muidumbe","Namuno","Nangade","Palma","Quissanga"],
+        "Niassa":["Lichinga","Cuamba","Lago","Majune","Mandimba","Marrupa","Maúa","Mavago","Mecanhelas","Mecula","Metarica","Muembe","N'gauma","Nipepe","Sanga"]
+    };
+
+    // Preencher províncias
+    function carregarProvincias() {
+        const selectProv = document.getElementById('provincia');
+        selectProv.innerHTML = '<option value="">Selecione</option>';
+        provinciasMocambique.forEach(p => {
+            const opt = document.createElement('option'); opt.value = p; opt.textContent = p;
+            selectProv.appendChild(opt);
+        });
+        selectProv.addEventListener('change', function() {
+            const prov = this.value;
+            const distSelect = document.getElementById('distrito');
+            if(prov && distritosPorProvincia[prov]) {
+                distSelect.innerHTML = '<option value="">Selecione o distrito</option>';
+                distritosPorProvincia[prov].forEach(d => {
+                    const opt = document.createElement('option'); opt.value = d; opt.textContent = d;
+                    distSelect.appendChild(opt);
+                });
+            } else { distSelect.innerHTML = '<option value="">Selecione primeiro a província</option>'; }
+        });
+    }
+
+    // Função para calcular dias em atraso e taxa
+    function calcularTaxaAtraso(divida) {
+        if (!divida) return { diasAtraso: 0, taxa: 0, valorTotal: divida?.valorPagar || 0 };
+        
+        const dataLimite = new Date(divida.dataLimite);
+        const hoje = new Date();
+        const diffTime = hoje - dataLimite;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Se não ultrapassou a data, não há atraso
+        if (diffDays <= 0) {
+            return { diasAtraso: 0, taxa: 0, valorTotal: divida.valorPagar };
+        }
+        
+        const taxa = diffDays * TAXA_ATRASO_DIA;
+        return { 
+            diasAtraso: diffDays, 
+            taxa: taxa, 
+            valorTotal: divida.valorPagar + taxa 
+        };
+    }
+
+    // Atualizar interface de níveis
+    function renderizarNiveis() {
+        if(!usuario) return;
+        const container = document.getElementById('levelsContainer');
+        container.innerHTML = '';
+        niveis.forEach(level => {
+            let liberado = (level.id <= usuario.nivelAtual);
+            const btn = document.createElement('div');
+            btn.className = `level-btn ${!liberado ? 'locked' : ''}`;
+            btn.innerHTML = `<strong>${level.nome}</strong><br>${level.valor} MT<br><span style="font-size:12px;">Paga: ${level.pagamento} MT</span><br>${liberado ? '✅ Disponível' : '🔒 <span class="lock-icon">🔒</span> Bloqueado'}`;
+            if(liberado) {
+                btn.onclick = () => abrirModalConfirmacao(level);
+            }
+            container.appendChild(btn);
+        });
+        const nivelAtualObj = niveis.find(n=> n.id === usuario.nivelAtual);
+        if(nivelAtualObj) {
+            const emprestimosFeitos = usuario.emprestimosFeitosNoNivel || 0;
+            const necessario = nivelAtualObj.qtdParaLiberar;
+            const resto = necessario - emprestimosFeitos;
+            document.getElementById('progressoTexto').innerText = `${emprestimosFeitos}/${necessario} empréstimos concluídos (faltam ${resto>0?resto:0}) para próximo nível.`;
+            const percent = (emprestimosFeitos/necessario)*100;
+            document.getElementById('progressBarFill').style.width = `${Math.min(100,percent)}%`;
+        }
+        document.getElementById('nivelAtualSpan').innerText = usuario.nivelAtual;
+        document.getElementById('userNameDisplay').innerText = usuario.nome.split(' ')[0];
+    }
+
+    // Abrir modal de confirmação
+    function abrirModalConfirmacao(level) {
+        if(level.id > usuario.nivelAtual) return alert("Nível bloqueado! Complete os empréstimos necessários.");
+        if(usuario.dividaAtiva) return alert("Você possui uma dívida ativa. Liquide antes de novo empréstimo.");
+        
+        nivelSelecionado = level;
+        const modal = document.getElementById('loanModal');
+        
+        // Preencher dados do cliente
+        document.getElementById('modalNome').textContent = usuario.nome;
+        document.getElementById('modalBilhete').textContent = usuario.bilhete;
+        document.getElementById('modalNumero').textContent = usuario.numero;
+        document.getElementById('modalEmail').textContent = usuario.email;
+        document.getElementById('modalLocalizacao').textContent = `${usuario.provincia}, ${usuario.distrito} - ${usuario.bairro}`;
+        
+        // Preencher resumo do empréstimo
+        const summaryHTML = `
+            <div class="info-detail"><span class="label">Nível:</span><span class="value">${level.nome}</span></div>
+            <div class="info-detail"><span class="label">💰 Valor solicitado:</span><span class="value">${level.valor} MT</span></div>
+            <div class="info-detail"><span class="label">💸 Total a pagar:</span><span class="value">${level.pagamento} MT</span></div>
+            <div class="info-detail"><span class="label">📈 Juro:</span><span class="value">${level.juro} MT</span></div>
+            <div class="info-detail"><span class="label">⏳ Prazo:</span><span class="value">${level.duracao} dias</span></div>
+            <div class="info-detail" style="background:#fff3cd; border:1px solid #ffc107;">
+                <span class="label">⚠️ Taxa de atraso:</span>
+                <span class="value" style="color:#856404;">${TAXA_ATRASO_DIA} MT por dia após vencimento</span>
+            </div>
+        `;
+        document.getElementById('loanSummaryDetails').innerHTML = summaryHTML;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Fechar modal de empréstimo
+    function fecharModalEmprestimo() {
+        document.getElementById('loanModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        nivelSelecionado = null;
+    }
+
+    // Confirmar e enviar para WhatsApp
+    function confirmarEnvioWhatsApp() {
+        if(!nivelSelecionado || !usuario) return;
+        
+        const msg = criarMensagemEmprestimo(nivelSelecionado);
+        enviarWhatsApp(msg);
+        
+        // Criar dívida ativa
+        const dataInicio = new Date();
+        const dataFim = new Date();
+        dataFim.setDate(dataFim.getDate() + nivelSelecionado.duracao);
+        usuario.dividaAtiva = {
+            nivelId: nivelSelecionado.id,
+            valorPagar: nivelSelecionado.pagamento,
+            valorOriginal: nivelSelecionado.valor,
+            juro: nivelSelecionado.juro,
+            dataInicio: dataInicio.toISOString(),
+            dataLimite: dataFim.toISOString(),
+            diasRestantes: nivelSelecionado.duracao,
+            taxaAtrasoAcumulada: 0
+        };
+        saveUserToStorage();
+        atualizarDividaUI();
+        
+        fecharModalEmprestimo();
+        
+        // Mostrar mensagem de sucesso
+        const successMsg = document.getElementById('successMsg');
+        successMsg.style.display = 'block';
+        setTimeout(() => {
+            successMsg.style.display = 'none';
+        }, 8000);
+    }
+
+    function criarMensagemEmprestimo(level) {
+        const user = usuario;
+        let msg = `*TAKO NA HORA EMPRÉSTIMO - SOLICITAÇÃO*%0A%0A`;
+        msg += `📌 *DADOS PESSOAIS*%0A`;
+        msg += `Nome: ${user.nome}%0A`;
+        msg += `Nº Bilhete: ${user.bilhete}%0A`;
+        msg += `Data Nascimento: ${user.nascimento}%0A`;
+        msg += `Província: ${user.provincia}%0A`;
+        msg += `Distrito: ${user.distrito}%0A`;
+        msg += `Bairro: ${user.bairro || 'Não informado'}%0A`;
+        msg += `Nº Cliente: ${user.numero}%0A`;
+        msg += `Email: ${user.email}%0A%0A`;
+        msg += `📌 *DETALHES DO EMPRÉSTIMO*%0A`;
+        msg += `Nível: ${level.nome} (ID: ${level.id})%0A`;
+        msg += `💰 Valor solicitado: ${level.valor} MT%0A`;
+        msg += `💸 Total a pagar: ${level.pagamento} MT%0A`;
+        msg += `📈 Juro: ${level.juro} MT%0A`;
+        msg += `⏳ Prazo: ${level.duracao} dias%0A`;
+        msg += `⚠️ Taxa de atraso: ${TAXA_ATRASO_DIA} MT/dia após vencimento%0A`;
+        msg += `📅 Data solicitação: ${new Date().toLocaleString()}`;
+        return msg;
+    }
+
+    // Função para enviar mensagem para o WhatsApp em nova aba
+    function enviarWhatsApp(mensagem) {
+        const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
+        window.open(url, '_blank');
+    }
+
+    function atualizarDividaUI() {
+        const divDebt = document.getElementById('debtCardPanel');
+        const lateFeeContainer = document.getElementById('lateFeeContainer');
+        
+        if(usuario && usuario.dividaAtiva) {
+            divDebt.style.display = 'block';
+            const d = usuario.dividaAtiva;
+            const dataLimite = new Date(d.dataLimite);
+            const hoje = new Date();
+            
+            // Calcular atraso e taxa
+            const { diasAtraso, taxa, valorTotal } = calcularTaxaAtraso(d);
+            const diffDays = Math.ceil((dataLimite - hoje) / (1000*60*60*24));
+            const diasRestantes = diffDays > 0 ? diffDays : 0;
+            const totalDias = niveis.find(n => n.id === d.nivelId)?.duracao || 30;
+            const progresso = ((totalDias - diasRestantes) / totalDias) * 100;
+            const estaAtrasado = diasAtraso > 0;
+            
+            // Atualizar elementos do cartão
+            document.getElementById('cardLastDigits').textContent = String(2026 + d.nivelId).slice(-4);
+            document.getElementById('debtCardHolder').textContent = usuario.nome.toUpperCase();
+            
+            // Mostrar valor com taxa de atraso se houver
+            const valorDisplay = estaAtrasado ? `${valorTotal} MT` : `${d.valorPagar} MT`;
+            document.getElementById('debtCardValue').textContent = valorDisplay;
+            
+            // Se estiver em atraso, adicionar classe de destaque
+            const valorElement = document.querySelector('.card-detail-item.highlight .detail-value');
+            if (estaAtrasado) {
+                valorElement.classList.add('overdue');
+            } else {
+                valorElement.classList.remove('overdue');
+            }
+            
+            document.getElementById('debtCardDue').textContent = dataLimite.toLocaleDateString('pt-PT', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+            
+            // Status e progresso
+            const statusIndicator = document.getElementById('debtCardStatus');
+            const statusText = document.getElementById('debtCardStatusText');
+            const progressFill = document.getElementById('debtProgressBar');
+            const progressPercent = document.getElementById('debtProgressPercent');
+            const daysText = document.getElementById('debtCardDays');
+            const daysContainer = document.getElementById('debtDaysContainer');
+            const pagarBtn = document.getElementById('pagarDebtBtn');
+            
+            // Progresso
+            const progressPercentValue = Math.min(100, progresso);
+            progressFill.style.width = `${progressPercentValue}%`;
+            progressPercent.textContent = `${Math.round(progressPercentValue)}%`;
+            
+            if (estaAtrasado) {
+                // Em atraso
+                progressFill.classList.add('overdue');
+                progressPercent.classList.add('overdue');
+                statusIndicator.className = 'status-indicator danger';
+                statusText.textContent = 'VENCIDO';
+                statusText.style.color = '#dc3545';
+                daysText.innerHTML = `<strong>${diasAtraso}</strong> dia(s) em atraso`;
+                daysText.classList.add('overdue');
+                daysContainer.querySelector('.days-icon').textContent = '⚠️';
+                
+                // Mostrar taxa de atraso
+                lateFeeContainer.style.display = 'block';
+                document.getElementById('lateFeeAmount').textContent = `+${taxa} MT`;
+                document.getElementById('lateFeeDays').textContent = diasAtraso;
+                
+                // Botão de pagamento em destaque
+                pagarBtn.classList.add('overdue-btn');
+                pagarBtn.innerHTML = `<span class="btn-icon">⚠️</span> Pagar ${valorTotal} MT (com multa)`;
+                
+            } else if (diasRestantes <= 3 && diasRestantes > 0) {
+                // Próximo ao vencimento
+                progressFill.classList.remove('overdue');
+                progressPercent.classList.remove('overdue');
+                statusIndicator.className = 'status-indicator warning';
+                statusText.textContent = 'PRÓXIMO VENCIMENTO';
+                statusText.style.color = '#ffc107';
+                daysText.innerHTML = `<strong>${diasRestantes}</strong> dias restantes`;
+                daysText.classList.remove('overdue');
+                daysContainer.querySelector('.days-icon').textContent = '⏳';
+                lateFeeContainer.style.display = 'none';
+                pagarBtn.classList.remove('overdue-btn');
+                pagarBtn.innerHTML = `<span class="btn-icon">💸</span> Fazer Pagamento via WhatsApp`;
+                
+            } else {
+                // Normal
+                progressFill.classList.remove('overdue');
+                progressPercent.classList.remove('overdue');
+                statusIndicator.className = 'status-indicator active';
+                statusText.textContent = 'ATIVO';
+                statusText.style.color = '#28a745';
+                daysText.innerHTML = `<strong>${diasRestantes}</strong> dias restantes`;
+                daysText.classList.remove('overdue');
+                daysContainer.querySelector('.days-icon').textContent = '⏳';
+                lateFeeContainer.style.display = 'none';
+                pagarBtn.classList.remove('overdue-btn');
+                pagarBtn.innerHTML = `<span class="btn-icon">💸</span> Fazer Pagamento via WhatsApp`;
+            }
+            
+        } else {
+            divDebt.style.display = 'none';
+        }
+    }
+
+    function iniciarPagamento() {
+        if(!usuario || !usuario.dividaAtiva) return alert("Nenhuma dívida ativa.");
+        const modal = document.getElementById('paymentModal');
+        document.getElementById('pagNome').value = usuario.nome;
+        const agora = new Date();
+        const horaStr = agora.toLocaleString();
+        document.getElementById('pagHora').value = horaStr;
+        document.getElementById('pagNumero').value = usuario.numero;
+        
+        // Calcular valor com taxa de atraso
+        const { valorTotal } = calcularTaxaAtraso(usuario.dividaAtiva);
+        document.getElementById('pagValor').value = valorTotal + " MT";
+        
+        document.getElementById('msgPagamento').value = '';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function enviarPagamentoWhats() {
+        const mensagemPag = document.getElementById('msgPagamento').value.trim();
+        if(!mensagemPag) return alert("Por favor, descreva o comprovativo de pagamento (ex: código de transação, valor, data).");
+        const divida = usuario.dividaAtiva;
+        if(!divida) return alert("Sem dívida ativa.");
+        
+        // Calcular valor com taxa
+        const { valorTotal, diasAtraso, taxa } = calcularTaxaAtraso(divida);
+        const estaAtrasado = diasAtraso > 0;
+        
+        let texto = `*TAKO NA HORA - PAGAMENTO DE EMPRÉSTIMO*%0A%0A`;
+        texto += `📌 *DADOS DO CLIENTE*%0A`;
+        texto += `Nome: ${usuario.nome}%0A`;
+        texto += `Nº Bilhete: ${usuario.bilhete}%0A`;
+        texto += `Número: ${usuario.numero}%0A`;
+        texto += `Email: ${usuario.email}%0A%0A`;
+        texto += `📌 *DETALHES DO PAGAMENTO*%0A`;
+        texto += `Data/Hora: ${document.getElementById('pagHora').value}%0A`;
+        texto += `Valor pago: ${valorTotal} MT (Nível ${divida.nivelId})%0A`;
+        if (estaAtrasado) {
+            texto += `⚠️ Taxa de atraso: ${taxa} MT (${diasAtraso} dias em atraso)%0A`;
+        }
+        texto += `Comprovativo: ${mensagemPag}%0A%0A`;
+        texto += `✅ Pagamento registado para aprovação.`;
+        
+        enviarWhatsApp(texto);
+        
+        // Atualizar progresso
+        const nivelAtualObj = niveis.find(n=> n.id === usuario.nivelAtual);
+        if(nivelAtualObj) {
+            usuario.emprestimosFeitosNoNivel = (usuario.emprestimosFeitosNoNivel || 0) + 1;
+            if(usuario.emprestimosFeitosNoNivel >= nivelAtualObj.qtdParaLiberar && usuario.nivelAtual < 10) {
+                usuario.nivelAtual++;
+                usuario.emprestimosFeitosNoNivel = 0;
+                alert(`🎉 Parabéns! Subiu para ${niveis.find(n=>n.id === usuario.nivelAtual)?.nome || 'Nível máximo'}!`);
+            }
+        }
+        usuario.dividaAtiva = null;
+        saveUserToStorage();
+        document.getElementById('paymentModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        renderizarNiveis();
+        atualizarDividaUI();
+        alert("✅ Comprovativo enviado! Aguarde confirmação do pagamento.");
+        document.getElementById('msgPagamento').value = "";
+    }
+
+    // Cadastro
+    function handleCadastro(e) {
+        e.preventDefault();
+        const nome = document.getElementById('nomeCompleto').value;
+        const bilhete = document.getElementById('numBilhete').value;
+        const nasc = document.getElementById('dataNasc').value;
+        const provincia = document.getElementById('provincia').value;
+        const distrito = document.getElementById('distrito').value;
+        const bairro = document.getElementById('bairro').value;
+        const numero = document.getElementById('numeroCliente').value;
+        const email = document.getElementById('emailCliente').value;
+        
+        if(!nome || !bilhete || !provincia || !distrito || !bairro || !numero || !email) {
+            return alert("Preencha todos os campos");
+        }
+        
+        usuario = {
+            nome, 
+            bilhete, 
+            nascimento: nasc, 
+            provincia, 
+            distrito,
+            bairro,
+            numero, 
+            email,
+            nivelAtual: 1,
+            emprestimosFeitosNoNivel: 0,
+            dividaAtiva: null,
+            _dataCadastro: new Date().toISOString()
+        };
+        saveUserToStorage();
+        document.getElementById('cadastroSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        renderizarNiveis();
+        atualizarDividaUI();
+        alert("✅ Cadastro realizado com sucesso! Seus dados foram salvos permanentemente.");
+        
+        // Enviar mensagem de boas-vindas do chatbot
+        setTimeout(() => {
+            addBotMessage("🎉 Bem-vindo à Tako Empréstimos! Se precisar de ajuda, estou aqui. Pergunte sobre níveis, como solicitar empréstimos ou taxas.");
+        }, 1000);
+    }
+
+    // ===== CHATBOT FUNCTIONS =====
+    function toggleChat() {
+        const widget = document.getElementById('chatWidget');
+        widget.classList.toggle('open');
+        if (widget.classList.contains('open')) {
+            document.getElementById('chatInput').focus();
+            // Remover dot de notificação ao abrir
+            document.querySelector('.chatbot-fab .notification-dot').style.display = 'none';
+        }
+    }
+
+    function addBotMessage(text) {
+        const container = document.getElementById('chatMessages');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                       now.getMinutes().toString().padStart(2, '0');
+        
+        const div = document.createElement('div');
+        div.className = 'message bot';
+        div.innerHTML = text + `<span class="msg-time">${timeStr}</span>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addUserMessage(text) {
+        const container = document.getElementById('chatMessages');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                       now.getMinutes().toString().padStart(2, '0');
+        
+        const div = document.createElement('div');
+        div.className = 'message user';
+        div.innerHTML = text + `<span class="msg-time">${timeStr}</span>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showTyping() {
+        document.getElementById('typingIndicator').style.display = 'block';
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    }
+
+    function hideTyping() {
+        document.getElementById('typingIndicator').style.display = 'none';
+    }
+
+    function getResponse(userMsg) {
+        const lowerMsg = userMsg.toLowerCase().trim();
+        
+        // Verificar palavras-chave
+        for (const [key, response] of Object.entries(CHAT_RESPONSES)) {
+            if (lowerMsg.includes(key)) {
+                return response;
+            }
+        }
+        
+        // Verificar saudações
+        if (lowerMsg.match(/^(oi|olá|ola|eai|ei|hey|hi|hello|bom dia|boa tarde|boa noite)/)) {
+            return "Olá! 👋 Como posso ajudá-lo hoje? Pergunte sobre níveis, solicitação de empréstimos, pagamentos ou taxas.";
+        }
+        
+        // Verificar se menciona valores ou números
+        const valorMatch = lowerMsg.match(/(\d+)\s*(mt|metical|meticais|mts|mzn)/);
+        if (valorMatch) {
+            const valor = parseInt(valorMatch[1]);
+            const nivelEncontrado = niveis.find(n => n.valor === valor || n.pagamento === valor);
+            if (nivelEncontrado) {
+                return `📊 *${nivelEncontrado.nome}*: ${nivelEncontrado.valor} MT, paga ${nivelEncontrado.pagamento} MT, juro ${nivelEncontrado.juro} MT, prazo ${nivelEncontrado.duracao} dias.`;
+            }
+            return `💰 Valor de ${valor} MT não corresponde a nenhum nível atual. Níveis disponíveis: ${niveis.map(n => n.valor + ' MT').join(', ')}`;
+        }
+        
+        return CHAT_RESPONSES['padrao'];
+    }
+
+    function handleChatSend() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
+        
+        addUserMessage(msg);
+        input.value = '';
+        input.focus();
+        
+        showTyping();
+        
+        // Simular tempo de resposta
+        setTimeout(() => {
+            hideTyping();
+            const response = getResponse(msg);
+            addBotMessage(response);
+        }, 1000 + Math.random() * 1000);
+    }
+
+    // ===== EVENT LISTENERS =====
+    // Chatbot
+    document.getElementById('chatFab').addEventListener('click', toggleChat);
+    document.getElementById('closeChat').addEventListener('click', toggleChat);
+    document.getElementById('sendChatBtn').addEventListener('click', handleChatSend);
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleChatSend();
+    });
+    
+    // Quick actions
+    document.querySelectorAll('.chatbot-quick-actions button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const msg = this.getAttribute('data-msg');
+            if (msg) {
+                document.getElementById('chatInput').value = msg;
+                handleChatSend();
+            }
+        });
+    });
+
+    // Inicialização
+    window.addEventListener('load', () => {
+        carregarProvincias();
+        setTimeout(() => {
+            document.getElementById('loader-wrapper').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loader-wrapper').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                if(loadUserFromStorage() && usuario) {
+                    document.getElementById('cadastroSection').style.display = 'none';
+                    document.getElementById('dashboardSection').style.display = 'block';
+                    renderizarNiveis();
+                    atualizarDividaUI();
+                } else {
+                    document.getElementById('cadastroSection').style.display = 'block';
+                    document.getElementById('dashboardSection').style.display = 'none';
+                }
+            }, 400);
+        }, 1500);
+    });
+
+    // Event listeners
+    document.getElementById('cadastroForm')?.addEventListener('submit', handleCadastro);
+    document.getElementById('pagarDebtBtn')?.addEventListener('click', iniciarPagamento);
+    document.getElementById('sendPaymentWhatsBtn')?.addEventListener('click', enviarPagamentoWhats);
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+        document.getElementById('paymentModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    document.getElementById('closePaymentModal')?.addEventListener('click', () => {
+        document.getElementById('paymentModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Event listeners do modal de empréstimo
+    document.getElementById('closeLoanModal')?.addEventListener('click', fecharModalEmprestimo);
+    document.getElementById('cancelLoanBtn')?.addEventListener('click', fecharModalEmprestimo);
+    document.getElementById('confirmLoanBtn')?.addEventListener('click', confirmarEnvioWhatsApp);
+
+    // Fechar modais clicando fora
+    document.getElementById('paymentModal')?.addEventListener('click', (e) => {
+        if(e.target === e.currentTarget) {
+            document.getElementById('paymentModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    document.getElementById('loanModal')?.addEventListener('click', (e) => {
+        if(e.target === e.currentTarget) {
+            fecharModalEmprestimo();
+        }
+    });
+
+    // Atualizar a UI a cada minuto para recalcular taxas
+    setInterval(() => {
+        if (usuario && usuario.dividaAtiva) {
+            atualizarDividaUI();
+        }
+    }, 60000);
+</script>
+</body>
+</html>
